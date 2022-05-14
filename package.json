@@ -1,0 +1,80 @@
+{
+  "name": "@sakitam-gis/raster-process",
+  "description": "A raster data process utilities",
+  "version": "1.0.0",
+  "private": false,
+  "license": "BSD 3-Clause",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "author": "sakitam-fdd <smilefdd@gmail.com>",
+  "repository": {
+    "url": "https://github.com/sakitam-gis/raster-process.git"
+  },
+  "scripts": {
+    "dev": "npm run build -- --watch",
+    "build": "tsup-node src/index.ts --sourcemap --dts --format esm,cjs",
+    "prepublishOnly": "npm run build",
+    "test": "npm run build && npm run test-only",
+    "test-only": "vitest run",
+    "coverage": "vitest run --coverage",
+    "semantic-release": "semantic-release --branches master"
+  },
+  "dependencies": {
+    "@sakitam-gis/affine": "^1.1.0",
+    "@sakitam-gis/mercantile": "^1.0.0",
+    "fs-extra": "^10.1.0",
+    "gdal-async": "^3.5.1",
+    "gdal": "^0.11.1",
+    "ndarray": "^1.0.19",
+    "cwise": "^1.0.10",
+    "lodash": "^4.17.21",
+    "ndarray-gdal": "^1.3.0",
+    "ndarray-concat-rows": "^1.0.1",
+    "ndarray-concat-cols": "^1.0.0",
+    "tapable": "^2.2.1",
+    "pino": "^8.4.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.10",
+    "@babel/eslint-parser": "^7.18.9",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-decorators": "^7.18.10",
+    "@babel/plugin-proposal-private-methods": "^7.18.6",
+    "@babel/plugin-proposal-private-property-in-object": "^7.18.6",
+    "@semantic-release/commit-analyzer": "^9.0.2",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^8.0.5",
+    "@semantic-release/npm": "^9.0.1",
+    "@semantic-release/release-notes-generator": "^10.0.3",
+    "@types/node": "^18.6.4",
+    "@types/lodash": "^4.14.182",
+    "@typescript-eslint/eslint-plugin": "^5.32.0",
+    "@typescript-eslint/parser": "^5.32.0",
+    "@types/ndarray": "^1.0.11",
+    "@stdlib/types": "^0.0.14",
+    "c8": "7.12.0",
+    "eslint": "^8.21.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-babel": "^5.3.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.0.0",
+    "prettier": "^2.7.0",
+    "semantic-release": "^19.0.3",
+    "tsup": "^6.2.1",
+    "typescript": "^4.7.4",
+    "vitest": "0.21.0",
+    "wait-for-expect": "3.0.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

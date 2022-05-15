@@ -1,5 +1,6 @@
 import reproject from '../process/reproject';
 import type { IReprojectOptions } from '../process/reproject';
+import { safePush } from '../utils';
 
 class Reproject {
   public id: string;
@@ -16,7 +17,17 @@ class Reproject {
 
   async run(data, path, opt) {
     try {
-      return reproject(data, path, opt);
+      const res = await reproject(data, path, opt);
+      return [
+        res.path,
+        res.data,
+        safePush(data[2], {
+          id: this.id,
+          path: res.path,
+          data: res.data,
+          options: opt,
+        }),
+      ];
     } catch (e) {
       this.ctx.logger.error(`[${this.id}]: `, e.toString());
     }

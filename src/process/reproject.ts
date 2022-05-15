@@ -1,7 +1,14 @@
 import fs from 'fs-extra';
-import { merge, isString } from 'lodash';
+import { merge } from 'lodash';
 import Affine from '@sakitam-gis/affine';
-import { openAsync, reprojectImageAsync, GDT_Float32, GRA_NearestNeighbor, SpatialReference } from 'gdal-async';
+import {
+  openAsync,
+  reprojectImageAsync,
+  GDT_Float32,
+  GRA_NearestNeighbor,
+  SpatialReference,
+  Dataset,
+} from 'gdal-async';
 import { extent, mercatorExtent } from '../config';
 import { transformExtent, getExtentFromDataSet, getProjFromDataset } from '../utils';
 
@@ -29,17 +36,28 @@ const defaultOptions = {
   resampling: GRA_NearestNeighbor,
   sourceProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
   sourceExtent: extent,
-  destinationProj4: '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs', // 3857
+  destinationProj4:
+    '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs', // 3857
   destinationExtent: mercatorExtent,
 };
 
-export default async (data, dstPath: string | Buffer, opt: Partial<IReprojectOptions> = {}) => {
-  const options = merge(defaultOptions, opt);
+export default async (
+  data,
+  dstPath: string | Buffer,
+  opt: Partial<IReprojectOptions> = {},
+): Promise<{
+  path: string | Buffer;
+  data: Dataset;
+}> => {
+  const options = merge({}, defaultOptions, opt);
   const stat = await fs.pathExists(dstPath);
 
   if (!options.clear) {
     if (stat) {
-      return dstPath;
+      return {
+        path: dstPath,
+        data: await openAsync(dstPath),
+      };
     }
   } else {
     if (stat) {
@@ -47,21 +65,29 @@ export default async (data, dstPath: string | Buffer, opt: Partial<IReprojectOpt
     }
   }
 
-  if (isString(data)) {
-    try {
-      data = await openAsync(data);
-    } catch (e) {
-      console.error(e);
-    }
+  let lastDst = data[1];
+
+  if (!lastDst && data[0]) {
+    lastDst = await openAsync(data[0]);
   }
 
-  const dst = await openAsync(dstPath, 'w', options.drivers, options.width, options.height, options.bandCount, options.dataType);
+  const dst = await openAsync(
+    dstPath,
+    'w',
+    options.drivers,
+    options.width,
+    options.height,
+    lastDst.bands.count() || options.bandCount,
+    options.dataType,
+  );
 
-  const extent = getExtentFromDataSet(data);
-  let [west, south, east, north] = options.destinationExtent;
-  if (extent && extent.length === 4) {
-    const source = getProjFromDataset(data) || options.sourceProj4;
-    [west, south, east, north] = transformExtent(extent, source, options.destinationProj4)
+  let [west, south, east, north] = options.destinationExtent || [];
+  if (!options.destinationExtent || options.destinationExtent.length < 4) {
+    const bbox = getExtentFromDataSet(lastDst);
+    if (bbox && bbox.length === 4) {
+      const source = getProjFromDataset(lastDst) || options.sourceProj4;
+      [west, south, east, north] = transformExtent(bbox, source, options.destinationProj4);
+    }
   }
 
   dst.srs = SpatialReference.fromProj4(options.destinationProj4);
@@ -70,13 +96,16 @@ export default async (data, dstPath: string | Buffer, opt: Partial<IReprojectOpt
   dst.geoTransform = t.multiply(s).toGdal();
 
   await reprojectImageAsync({
-    src: data,
+    src: lastDst,
     dst: dst,
-    s_srs: data.srs,
+    s_srs: lastDst.srs,
     t_srs: dst.srs,
     // http://naturalatlas.github.io/node-gdal/classes/Constants%20(GRA).html
     resampling: options.resampling,
   });
 
-  return dstPath;
+  return {
+    path: dstPath,
+    data: dst,
+  };
 };

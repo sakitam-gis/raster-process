@@ -1,5 +1,6 @@
 import writeTiff from '../process/writeTiff';
 import type { IWriteOptions } from '../process/writeTiff';
+import { safePush } from '../utils';
 
 class WriteTiff {
   public id: string;
@@ -16,7 +17,17 @@ class WriteTiff {
 
   async run(data, path, opt) {
     try {
-      return writeTiff(data, path, opt);
+      const res = await writeTiff(data, path, opt);
+      return [
+        res.path,
+        res.data,
+        safePush(data[2], {
+          id: this.id,
+          path: res.path,
+          data: res.data,
+          options: this.options,
+        }),
+      ];
     } catch (e) {
       this.ctx.logger.error(`[${this.id}]: `, e.toString());
     }

@@ -16,5 +16,5 @@ import RasterProcess from '@sakitam-gis/raster-process'
 
 ```ts
 const process = new RasterProcess();
-process.use(plugin).use(plugin);
+process.use(task).use(task);
 ```

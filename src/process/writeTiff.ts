@@ -1,9 +1,10 @@
 import fs from 'fs-extra';
 import { merge } from 'lodash';
-import { openAsync, GDT_Float32, GRA_NearestNeighbor } from 'gdal-async';
+import Affine from '@sakitam-gis/affine';
+import { openAsync, GDT_Float32, Dataset, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
-import { extent, mercatorExtent } from '../config';
 import { calcMinMax } from '../utils';
+import {floatToGray} from "./normalizeData";
 
 export interface IWriteOptions {
   clear: boolean;
@@ -11,36 +12,38 @@ export interface IWriteOptions {
   height: number;
   dataType: string;
   bandCount: number;
+  gray: boolean;
   drivers: string | string[];
-  resampling: string;
-  sourceProj4: string;
-  sourceExtent: [number, number, number, number];
-  destinationProj4: string;
-  destinationExtent: [number, number, number, number];
+  customProj4: string;
+  customExtent: [number, number, number, number];
 }
 
 const defaultOptions = {
   clear: true,
-  width: 256,
-  height: 256,
   drivers: 'GTiff',
   bandCount: 1,
+  gray: false,
   dataType: GDT_Float32,
-  resampling: GRA_NearestNeighbor,
-  sourceProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
-  sourceExtent: extent,
-  destinationProj4: '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs', // 3857
-  destinationExtent: mercatorExtent,
 };
 
-export default async (data, dstPath: string | Buffer, opt: Partial<IWriteOptions> = {}) => {
-  const options = merge(defaultOptions, opt)
+export default async (
+  data,
+  dstPath: string | Buffer,
+  opt: Partial<IWriteOptions> = {},
+): Promise<{
+  path: string | Buffer;
+  data: Dataset;
+}> => {
+  const options = merge({}, defaultOptions, opt);
 
   const stat = await fs.pathExists(dstPath);
 
   if (!options.clear) {
     if (stat) {
-      return dstPath;
+      return {
+        path: dstPath,
+        data: await openAsync(dstPath),
+      };
     }
   } else {
     if (stat) {
@@ -48,21 +51,54 @@ export default async (data, dstPath: string | Buffer, opt: Partial<IWriteOptions
     }
   }
 
-  const bands = data.bands;
-  const size = data.rasterSize;
+  let lastDst = data[1];
+
+  if (!lastDst && data[0]) {
+    lastDst = await openAsync(data[0]);
+  }
+
+  const bands = lastDst.bands;
+  const size = lastDst.rasterSize;
 
   const count = bands.count();
 
-  const dst = await openAsync(dstPath, 'w', options.drivers, size.x || options.width, size.y || options.height, count || options.bandCount, options.dataType);
+  const dst = await openAsync(
+    dstPath,
+    'w',
+    options.drivers,
+    size.x || options.width,
+    size.y || options.height,
+    count || options.bandCount,
+    options.dataType,
+  );
 
-  dst.srs = data.srs;
-  dst.geoTransform = data.geoTransform;
+  let srs = lastDst.srs;
+  let geoTransform = lastDst.geoTransform;
+  if (options.customProj4) {
+    srs = SpatialReference.fromProj4(options.customProj4);
+  }
+
+  if (options.customExtent) {
+    const [west, south, east, north] = options.customExtent;
+    const t = Affine.translation(west, north);
+    const s = Affine.scale(
+      (east - west) / (options.width !== undefined ? options.width : size.x),
+      (south - north) / (options.height !== undefined ? options.height : size.y),
+    );
+    geoTransform = t.multiply(s).toGdal();
+  }
+
+  dst.srs = srs;
+  dst.geoTransform = geoTransform;
 
   for (let i = 1; i < count + 1; i++) {
     const e = bands.get(i);
     const info = e.getMetadata();
-    const data = await e.pixels.readArrayAsync();
-    const [min, max] = calcMinMax(data.data);
+    const pixelsData = await e.pixels.readArrayAsync();
+    const [min, max] = calcMinMax(pixelsData.data);
+    if (options.gray) {
+      floatToGray(pixelsData, min, max);
+    }
     const targetBand = dst.bands.get(i);
     if (targetBand) {
       const pixel = targetBand.pixels;
@@ -70,14 +106,15 @@ export default async (data, dstPath: string | Buffer, opt: Partial<IWriteOptions
         min,
         max,
         ...info,
-      })
+      });
       await pixel.writeArrayAsync({
-        x: 0,
-        y: 0,
-        data,
-      })
+        data: pixelsData,
+      });
     }
   }
 
-  return dstPath;
+  return {
+    path: dstPath,
+    data: dst,
+  };
 };

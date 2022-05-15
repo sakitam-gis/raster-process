@@ -24,7 +24,7 @@ class RasterProcess {
   private task: AsyncSeriesWaterfallHook<string, UnsetAdditionalOptions>;
 
   constructor(config: Partial<IConfig>) {
-    this.config = merge(defaultConfig, config);
+    this.config = merge({}, defaultConfig, config);
 
     this.createLogger();
 
@@ -35,29 +35,31 @@ class RasterProcess {
         this.logger.info(`${tapInfo.name} is register`);
         return tapInfo;
       },
-      tap: (tap) => {
-        console.log(tap.name, 'tap');
-      },
     });
   }
 
   createLogger() {
     const data = new Date();
-    const destination = `./logs/{name}-${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate()}.log`.replace('{name}', this.config.name);
+    const destination = `./logs/{name}-${data.getFullYear()}-${
+      data.getMonth() + 1
+    }-${data.getDate()}.log`.replace('{name}', this.config.name);
 
-    const targetLog = path.resolve(this.config.workspace, <string>this.config.log?.destination || destination);
+    const targetLog = path.resolve(
+      this.config.workspace,
+      <string>this.config.log?.destination || destination,
+    );
 
     fs.ensureFileSync(targetLog);
 
     this.logger = pino(this.config.log?.options || {}, pino.destination(targetLog));
   }
 
-  use(task: ITask) {
-    task.apply(this);
+  use(t: ITask) {
+    t.apply(this);
     return this;
   }
 
-  run(pathSrc) {
+  run(pathSrc: string) {
     this.task.callAsync(pathSrc, () => {
       this.logger.info('all task done');
     });

@@ -118,3 +118,32 @@ export function calcMinMax(array: number[]) {
   }
   return [min, max];
 }
+
+export type IRItem = {
+  id: string;
+  path: string | Buffer;
+  data: Dataset | Map<string, string>;
+  options: any;
+};
+
+export function safePush(array: IRItem[] = [], item: IRItem) {
+  let result: IRItem[] = array;
+  if (!Array.isArray(array)) {
+    result = [];
+  }
+  result.push(item);
+  return result;
+}
+
+export function diffMap(source, target) {
+  let testVal;
+  const diff = new Map();
+
+  for (const [key, val] of source) {
+    testVal = target.get(key);
+    if (testVal !== val || (testVal === undefined && !target.has(key))) {
+      diff.set(key, val);
+    }
+  }
+  return diff;
+}

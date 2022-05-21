@@ -4,7 +4,7 @@ const path = require('path');
 function run () {
   const rp = new RasterProcess.default();
 
-  const dataPath = path.resolve(__dirname, './data/gfs.t12z.pgrb2.0p25.grib');
+  const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t12z.pgrb2.0p25.grib');
   const tiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25.tiff');
   const mercatorTiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff');
 
@@ -30,11 +30,13 @@ function run () {
     )
     .use(
       new RasterProcess.default.task.GenerateTiles(tempPath, {
-        clear: true,
-        zooms: [0, 6, 1]
+        clear: false,
+        zooms: [0, 3, 1]
       }),
     )
-    .run([dataPath]);
+    .run([dataPath], (res) => {
+      console.log(res);
+    });
 }
 
 run();

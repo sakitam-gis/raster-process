@@ -71,6 +71,8 @@ export default async (
     lastDst = await openAsync(data[0]);
   }
 
+  await fs.ensureFileSync(dstPath);
+
   const dst = await openAsync(
     dstPath,
     'w',

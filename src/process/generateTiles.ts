@@ -53,7 +53,10 @@ async function checkAndLoad(p, clear = false, load = true): Promise<any> {
 
     if (!clear) {
       if (stat) {
-        return load ? [true, [p, await openAsync(p)]] : [true];
+        return load ? [true, {
+          path: p,
+          data: await openAsync(p),
+        }] : [true];
       }
       return [false];
     } else {
@@ -72,7 +75,7 @@ export default async (
   folder: string,
   opt: Partial<IGenerateTileOptions> = {},
 ): Promise<{
-  path: string | Buffer;
+  path: string[];
   data: Map<string, string>;
   errorData: Map<string, string>;
 }> => {
@@ -121,7 +124,7 @@ export default async (
         const y = tile.getY();
         const tileId = `${z}-${x}-${y}`;
         const tilePath = path.join(folder, options.tileFolder, String(z), String(x), `${y}.tiff`);
-        const tileState = checkAndLoad(tilePath, options.clear, false);
+        const tileState = await checkAndLoad(tilePath, options.clear, false);
         needPaths.set(tileId, tilePath);
         if (tileState[0]) {
           tilesPath.set(tileId, tilePath);
@@ -201,14 +204,14 @@ export default async (
     }
 
     return {
-      path: folder,
+      path: Array.from(tilesPath, ([_, value]) => value),
       data: tilesPath,
       errorData: diffMap(needPaths, tilesPath),
     };
   } catch (e) {
     console.error(e);
     return {
-      path: folder,
+      path: [],
       data: tilesPath,
       errorData: diffMap(needPaths, tilesPath),
     };

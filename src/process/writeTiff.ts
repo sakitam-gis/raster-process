@@ -62,6 +62,8 @@ export default async (
 
   const count = bands.count();
 
+  await fs.ensureFileSync(dstPath);
+
   const dst = await openAsync(
     dstPath,
     'w',

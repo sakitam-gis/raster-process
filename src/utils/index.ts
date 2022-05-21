@@ -121,7 +121,7 @@ export function calcMinMax(array: number[]) {
 
 export type IRItem = {
   id: string;
-  path: string | Buffer;
+  path: string | Buffer | string[];
   data: Dataset | Map<string, string>;
   options: any;
 };

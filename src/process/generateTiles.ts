@@ -3,7 +3,7 @@ import path from 'path';
 import { merge } from 'lodash';
 import Affine from '@sakitam-gis/affine';
 import { Constant, Mercantile } from '@sakitam-gis/mercantile';
-import { openAsync, GDT_Float32, SpatialReference } from 'gdal-async';
+import { openAsync, GDT_Float32, GDT_Byte, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
 import ndarray from 'ndarray';
 import { mercatorLngLatExtent } from '../config';
@@ -21,6 +21,7 @@ export interface IGenerateTileOptions {
   bandCount: number;
   drivers: string | string[];
   clipExtent: boolean;
+  writeExif: boolean;
   gray: boolean;
   tileFolder: string;
   cacheFolder: string;
@@ -158,6 +159,7 @@ export default async (
           dst.shape[0],
           dst.shape[1],
           options.bandCount,
+          options.gray ? GDT_Byte : options.dataType,
         );
 
         const [west, south, east, north] = [
@@ -179,11 +181,20 @@ export default async (
           floatToGray(dst, min, max);
         }
 
-        tileDst.setMetadata({
-          min,
-          max,
-        });
-        const imageData = ndarray(new Float32Array(dst.shape[0] * dst.shape[1]), dst.shape);
+        if (options.writeExif) {
+          tileDst.setMetadata({
+            min,
+            max,
+            EXIF_ImageDescription: `${min},${max}`,
+          });
+        } else {
+          tileDst.setMetadata({
+            min,
+            max,
+          });
+        }
+
+        const imageData = options.gray ? ndarray(new Uint8Array(dst.shape[0] * dst.shape[1]), dst.shape) : ndarray(new Float32Array(dst.shape[0] * dst.shape[1]), dst.shape);
 
         for (let j = 0; j < dst.shape[0]; ++j) {
           for (let k = 0; k < dst.shape[1]; ++k) {
@@ -200,6 +211,8 @@ export default async (
           data: imageData,
         });
         tilesPath.set(tileId, tilePath);
+        tileDst.flush();
+        tileDst.close();
       }
     }
 

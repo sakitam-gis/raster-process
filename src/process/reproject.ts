@@ -1,3 +1,4 @@
+import os from 'os';
 import fs from 'fs-extra';
 import { merge } from 'lodash';
 import Affine from '@sakitam-gis/affine';
@@ -21,6 +22,7 @@ export interface IReprojectOptions {
   drivers: string | string[];
   resampling: string;
   sourceProj4: string;
+  threads: number;
   sourceExtent: [number, number, number, number];
   destinationProj4: string;
   destinationExtent: [number, number, number, number];
@@ -40,6 +42,8 @@ const defaultOptions = {
     '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs', // 3857
   destinationExtent: mercatorExtent,
 };
+
+const cpus = os.cpus().length;
 
 export default async (
   data,
@@ -104,6 +108,9 @@ export default async (
     t_srs: dst.srs,
     // http://naturalatlas.github.io/node-gdal/classes/Constants%20(GRA).html
     resampling: options.resampling,
+    options: {
+      NUM_THREADS: options.threads || cpus.toString(),
+    },
   });
 
   return {

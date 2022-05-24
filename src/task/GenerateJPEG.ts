@@ -1,23 +1,23 @@
-import generateTiles from '../process/generateTiles';
-import type { IGenerateTileOptions } from '../process/generateTiles';
+import generateJPEG from '../process/generateJPEG';
+import type { IGenerateJPEGOptions } from '../process/generateJPEG';
 import { safePush } from '../utils';
 
-class GenerateTiles {
+class GenerateJPEG {
   public id: string;
   public folder: string;
   public options: any;
 
   private ctx: any;
 
-  constructor(folder: string, options: Partial<IGenerateTileOptions> = {}) {
-    this.id = 'GenerateTilesTask';
+  constructor(folder: string, options: Partial<IGenerateJPEGOptions> = {}) {
+    this.id = 'GenerateJPEGTask';
     this.folder = folder;
     this.options = options;
   }
 
   async run(data, folder, opt) {
     try {
-      const res = await generateTiles(data, folder, opt);
+      const res = await generateJPEG(data, folder, opt);
       return [
         res.path,
         res.data,
@@ -39,4 +39,4 @@ class GenerateTiles {
   }
 }
 
-export default GenerateTiles;
+export default GenerateJPEG;

@@ -9,6 +9,7 @@ function run () {
   const mercatorTiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff');
 
   const tempPath = path.resolve(__dirname, './data/result/tiles');
+  const jpegPath = path.resolve(__dirname, './data/result');
 
   rp
     .use(
@@ -30,8 +31,15 @@ function run () {
     )
     .use(
       new RasterProcess.default.task.GenerateTiles(tempPath, {
-        clear: false,
-        zooms: [0, 3, 1]
+        clear: true,
+        gray: true,
+        writeExif: true,
+        zooms: [0, 1, 1]
+      }),
+    )
+    .use(
+      new RasterProcess.default.task.GenerateJPEG(jpegPath, {
+        clear: true,
       }),
     )
     .run([dataPath], (res) => {

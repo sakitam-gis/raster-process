@@ -19,6 +19,13 @@ function run () {
       new RasterProcess.default.task.WriteTiff(tiffPath, {
         clear: true,
         gray: false,
+        // bandsFunction: (info) => {
+        //   return {
+        //     name: 'TMP',
+        //     label: '温度',
+        //     process: (v) => RasterProcess.default.normalizeDataProcess.subScalar(v, 100),
+        //   };
+        // },
         customProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
         customExtent: [-180, -85.05112877980659, 180, 85.05112877980659],
       }),

@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { Dataset } from 'gdal-async';
 import * as task from './task';
+import * as normalizeDataProcess from './process/normalizeData';
 import type { BaseLogger } from 'pino';
 import type { IConfig } from './config';
 import type { IRItem } from './utils';
@@ -30,6 +31,7 @@ export type ITaskResult = [
 
 class RasterProcess {
   public static task = task;
+  public static normalizeDataProcess = normalizeDataProcess;
   public logger: BaseLogger;
   public config: IConfig & Partial<IConfig>;
   private task: AsyncSeriesWaterfallHook<string, UnsetAdditionalOptions>;

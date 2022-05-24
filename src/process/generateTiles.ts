@@ -56,10 +56,15 @@ async function checkAndLoad(p, clear = false, load = true): Promise<any> {
 
     if (!clear) {
       if (stat) {
-        return load ? [true, {
-          path: p,
-          data: await openAsync(p),
-        }] : [true];
+        return load
+          ? [
+              true,
+              {
+                path: p,
+                data: await openAsync(p),
+              },
+            ]
+          : [true];
       }
       return [false];
     } else {
@@ -109,9 +114,9 @@ export default async (
       const targetData = fc[0]
         ? fc[1]
         : await reproject(['', lastDst, []], dstSrc, {
-          width: tileWidth,
-          height: tileHeight,
-        });
+            width: tileWidth,
+            height: tileHeight,
+          });
       const tiles = Mercantile.tiles(
         options.tileExtent[0],
         options.tileExtent[1],
@@ -124,20 +129,29 @@ export default async (
       const bands = targetData.data.bands;
       const count = bands.count();
 
-      for (let i = 1; i < count + 1; i++) {
-        const e = bands.get(i);
+      for (let b = 1; b < count + 1; b++) {
+        const e = bands.get(b);
         const info = e.getMetadata();
         const largeData = await enlargeData([targetData.path, targetData.data], {
           ...(options.enlargeOptions || {}),
-          bandsIndex: i,
+          bandsIndex: b,
         });
-        const bandName: string = isFunction(options.bandName) ? options?.bandName(z, i, info) : options.bandName;
+        const bandName: string = isFunction(options.bandName)
+          ? options?.bandName(z, b, info)
+          : options.bandName;
 
         for (const tile of tiles) {
           const x = tile.getX();
           const y = tile.getY();
           const tileId = `${bandName}-${z}-${x}-${y}`;
-          const tilePath = path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.tiff`);
+          const tilePath = path.join(
+            folder,
+            options.tileFolder,
+            bandName,
+            String(z),
+            String(x),
+            `${y}.tiff`,
+          );
           const tileState = await checkAndLoad(tilePath, options.clear, false);
           needPaths.set(tileId, tilePath);
           if (tileState[0]) {
@@ -222,7 +236,9 @@ export default async (
             });
           }
 
-          const imageData = options.gray ? ndarray(new Uint8Array(dst.shape[0] * dst.shape[1]), dst.shape) : ndarray(new Float32Array(dst.shape[0] * dst.shape[1]), dst.shape);
+          const imageData = options.gray
+            ? ndarray(new Uint8Array(dst.shape[0] * dst.shape[1]), dst.shape)
+            : ndarray(new Float32Array(dst.shape[0] * dst.shape[1]), dst.shape);
 
           for (let j = 0; j < dst.shape[0]; ++j) {
             for (let k = 0; k < dst.shape[1]; ++k) {

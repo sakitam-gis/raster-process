@@ -1,10 +1,18 @@
 import fs from 'fs-extra';
-import { merge } from 'lodash';
+import { merge, isFunction, isObject } from 'lodash';
 import Affine from '@sakitam-gis/affine';
 import { openAsync, GDT_Float32, Dataset, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
+import { NdArray } from 'ndarray';
 import { calcMinMax } from '../utils';
-import {floatToGray} from "./normalizeData";
+import { floatToGray } from './normalizeData';
+
+export interface IBandsMapping {
+  bandCount: number;
+  name: string;
+  label: string;
+  process?: (v: NdArray) => NdArray;
+}
 
 export interface IWriteOptions {
   clear: boolean;
@@ -12,6 +20,7 @@ export interface IWriteOptions {
   height: number;
   dataType: string;
   bandCount: number;
+  bandsFunction: (info: any) => boolean | Omit<IBandsMapping, 'bandCount'>;
   gray: boolean;
   drivers: string | string[];
   customProj4: string;
@@ -21,8 +30,8 @@ export interface IWriteOptions {
 const defaultOptions = {
   clear: true,
   drivers: 'GTiff',
-  bandCount: 1,
   gray: false,
+  bandsFunction: () => true,
   dataType: GDT_Float32,
 };
 
@@ -62,6 +71,21 @@ export default async (
 
   const count = bands.count();
 
+  const bandsMapping: IBandsMapping[] = [];
+
+  for (let i = 1; i < count + 1; i++) {
+    const e = bands.get(i);
+    const info = e.getMetadata();
+    const cfg = options.bandsFunction(info);
+    if (cfg) {
+      const mergeConfig = isObject(cfg) ? cfg : ({} as Omit<IBandsMapping, 'bandCount'>);
+      bandsMapping.push({
+        bandCount: i,
+        ...mergeConfig,
+      });
+    }
+  }
+
   await fs.ensureFileSync(dstPath);
 
   const dst = await openAsync(
@@ -70,7 +94,7 @@ export default async (
     options.drivers,
     size.x || options.width,
     size.y || options.height,
-    count || options.bandCount,
+    bandsMapping.length || options.bandCount,
     options.dataType,
   );
 
@@ -93,15 +117,21 @@ export default async (
   dst.srs = srs;
   dst.geoTransform = geoTransform;
 
-  for (let i = 1; i < count + 1; i++) {
-    const e = bands.get(i);
+  for (let j = 0; j < bandsMapping.length; j++) {
+    const config = bandsMapping[j];
+    const e = bands.get(config.bandCount);
     const info = e.getMetadata();
     const pixelsData = await e.pixels.readArrayAsync();
     const [min, max] = calcMinMax(pixelsData.data);
+
+    if (isFunction(config.process)) {
+      config.process(pixelsData);
+    }
+
     if (options.gray) {
       floatToGray(pixelsData, min, max);
     }
-    const targetBand = dst.bands.get(i);
+    const targetBand = dst.bands.get(config.bandCount);
     if (targetBand) {
       const pixel = targetBand.pixels;
       await targetBand.setMetadataAsync({

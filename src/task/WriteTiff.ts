@@ -18,16 +18,18 @@ class WriteTiff {
   async run(data, path, opt) {
     try {
       const res = await writeTiff(data, path, opt);
-      return [
-        res.path,
-        res.data,
-        safePush(data[2], {
-          id: this.id,
-          path: res.path,
-          data: res.data,
-          options: this.options,
-        }),
-      ];
+      if (res) {
+        return [
+          res.path,
+          res.data,
+          safePush(data[2], {
+            id: this.id,
+            path: res.path,
+            data: res.data,
+            options: this.options,
+          }),
+        ];
+      }
     } catch (e) {
       this.ctx.logger.error(`[${this.id}]: `, e.toString());
     }

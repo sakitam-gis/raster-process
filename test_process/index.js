@@ -4,7 +4,7 @@ const path = require('path');
 function run () {
   const rp = new RasterProcess.default();
 
-  const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t12z.pgrb2.0p25.grib');
+  const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t00z.pgrb2.0p25.f000');
   const tiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25.tiff');
   const mercatorTiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff');
 
@@ -19,13 +19,17 @@ function run () {
       new RasterProcess.default.task.WriteTiff(tiffPath, {
         clear: true,
         gray: false,
-        // bandsFunction: (info) => {
-        //   return {
-        //     name: 'TMP',
-        //     label: '温度',
-        //     process: (v) => RasterProcess.default.normalizeDataProcess.subScalar(v, 100),
-        //   };
-        // },
+        bandsFunction: (info) => {
+          const t = info.GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES.split(' ');
+          if (info.GRIB_ELEMENT === 'TMP' && t[11] === '100000') {
+            return {
+              name: 'TMP',
+              label: '温度',
+              process: (v) => RasterProcess.default.normalizeDataProcess.subScalar(v, 0),
+            };
+          }
+          return false;
+        },
         customProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
         customExtent: [-180, -85.05112877980659, 180, 85.05112877980659],
       }),

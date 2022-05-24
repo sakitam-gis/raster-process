@@ -1,13 +1,13 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { merge } from 'lodash';
+import { isFunction, merge } from 'lodash';
 import Affine from '@sakitam-gis/affine';
 import { Constant, Mercantile } from '@sakitam-gis/mercantile';
 import { openAsync, GDT_Float32, GDT_Byte, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
 import ndarray from 'ndarray';
 import { mercatorLngLatExtent } from '../config';
-import { calcMinMax, diffMap } from '../utils';
+import { calcMinMax, diffMap, isValid } from '../utils';
 import { floatToGray } from './normalizeData';
 import enlargeData from './enlargeData';
 import type { IEnlargeDataOptions } from './enlargeData';
@@ -23,6 +23,7 @@ export interface IGenerateTileOptions {
   clipExtent: boolean;
   writeExif: boolean;
   gray: boolean;
+  bandName: string | ((zoom: string, band: number, info: any) => string);
   tileFolder: string;
   cacheFolder: string;
   cacheFilePrefix: string;
@@ -41,6 +42,7 @@ const defaultOptions = {
   tileExtent: mercatorLngLatExtent,
   zooms: [0, 5, 1], // start,end,step
   dataType: GDT_Float32,
+  bandName: (zoom, band, info) => info.GRIB_ELEMENT,
   tileFolder: 'tiles',
   cacheFolder: 'cache',
   cacheFilePrefix: 'mercator',
@@ -118,101 +120,128 @@ export default async (
         [z],
         options.clipExtent,
       );
-      const largeData = await enlargeData([targetData.path, targetData.data], options.enlargeOptions || {});
 
-      for (const tile of tiles) {
-        const x = tile.getX();
-        const y = tile.getY();
-        const tileId = `${z}-${x}-${y}`;
-        const tilePath = path.join(folder, options.tileFolder, String(z), String(x), `${y}.tiff`);
-        const tileState = await checkAndLoad(tilePath, options.clear, false);
-        needPaths.set(tileId, tilePath);
-        if (tileState[0]) {
-          tilesPath.set(tileId, tilePath);
-          continue;
-        } else {
-          await fs.ensureFileSync(tilePath);
-        }
-        const bbox = tile.getBBox();
+      const bands = targetData.data.bands;
+      const count = bands.count();
 
-        const startX = x * options.tileSize;
-        const endX = (x + 1) * options.tileSize + 1;
-        const startY = y * options.tileSize;
-        const endY = (y + 1) * options.tileSize + 1;
-
-        const dst = ndarray([], [endX - startX, endY - startY]);
-
-        const clipDst = largeData.data.hi(endY, endX).lo(startY, startX);
-
-        for (let j = 0; j < clipDst.shape[0]; ++j) {
-          for (let k = 0; k < clipDst.shape[1]; ++k) {
-            const v = clipDst.get(j, k);
-            dst.set(j, k, v);
-          }
-        }
-
-        await fs.ensureFileSync(tilePath);
-        const tileDst = await openAsync(
-          tilePath,
-          'w',
-          'GTiff',
-          dst.shape[0],
-          dst.shape[1],
-          options.bandCount,
-          options.gray ? GDT_Byte : options.dataType,
-        );
-
-        const [west, south, east, north] = [
-          bbox.getLeft(),
-          bbox.getBottom(),
-          bbox.getRight(),
-          bbox.getTop(),
-        ];
-        const t = Affine.translation(west, north);
-        const s = Affine.scale((east - west) / dst.shape[0], (south - north) / dst.shape[1]);
-        tileDst.geoTransform = t.multiply(s).toGdal();
-
-        tileDst.srs = SpatialReference.fromProj4(options.tileProj4);
-
-        const pixel = tileDst.bands.get(1).pixels;
-        const [min, max] = calcMinMax(dst.data);
-
-        if (options.gray) {
-          floatToGray(dst, min, max);
-        }
-
-        if (options.writeExif) {
-          tileDst.setMetadata({
-            min,
-            max,
-            EXIF_ImageDescription: `${min},${max}`,
-          });
-        } else {
-          tileDst.setMetadata({
-            min,
-            max,
-          });
-        }
-
-        const imageData = options.gray ? ndarray(new Uint8Array(dst.shape[0] * dst.shape[1]), dst.shape) : ndarray(new Float32Array(dst.shape[0] * dst.shape[1]), dst.shape);
-
-        for (let j = 0; j < dst.shape[0]; ++j) {
-          for (let k = 0; k < dst.shape[1]; ++k) {
-            const v = dst.get(j, k);
-            imageData.set(j, k, v);
-          }
-        }
-
-        await pixel.writeArrayAsync({
-          x: 0,
-          y: 0,
-          width: imageData.shape[0],
-          height: imageData.shape[1],
-          data: imageData,
+      for (let i = 1; i < count + 1; i++) {
+        const e = bands.get(i);
+        const info = e.getMetadata();
+        const largeData = await enlargeData([targetData.path, targetData.data], {
+          ...(options.enlargeOptions || {}),
+          bandsIndex: i,
         });
-        tilesPath.set(tileId, tilePath);
-        tileDst.flush();
-        tileDst.close();
+        const bandName: string = isFunction(options.bandName) ? options?.bandName(z, i, info) : options.bandName;
+
+        for (const tile of tiles) {
+          const x = tile.getX();
+          const y = tile.getY();
+          const tileId = `${bandName}-${z}-${x}-${y}`;
+          const tilePath = path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.tiff`);
+          const tileState = await checkAndLoad(tilePath, options.clear, false);
+          needPaths.set(tileId, tilePath);
+          if (tileState[0]) {
+            tilesPath.set(tileId, tilePath);
+            continue;
+          } else {
+            await fs.ensureFileSync(tilePath);
+          }
+          const bbox = tile.getBBox();
+
+          const startX = x * options.tileSize;
+          const endX = (x + 1) * options.tileSize + 1;
+          const startY = y * options.tileSize;
+          const endY = (y + 1) * options.tileSize + 1;
+
+          const dst = ndarray([], [endX - startX, endY - startY]);
+
+          const clipDst = largeData.data.hi(endY, endX).lo(startY, startX);
+
+          for (let j = 0; j < clipDst.shape[0]; ++j) {
+            for (let k = 0; k < clipDst.shape[1]; ++k) {
+              const v = clipDst.get(j, k);
+              dst.set(j, k, v);
+            }
+          }
+
+          await fs.ensureFileSync(tilePath);
+          const tileDst = await openAsync(
+            tilePath,
+            'w',
+            'GTiff',
+            dst.shape[0],
+            dst.shape[1],
+            isValid(options.bandCount, true) ? options.bandCount : 1,
+            options.gray ? GDT_Byte : options.dataType,
+          );
+
+          const [west, south, east, north] = [
+            bbox.getLeft(),
+            bbox.getBottom(),
+            bbox.getRight(),
+            bbox.getTop(),
+          ];
+          const t = Affine.translation(west, north);
+          const s = Affine.scale((east - west) / dst.shape[0], (south - north) / dst.shape[1]);
+          tileDst.geoTransform = t.multiply(s).toGdal();
+
+          tileDst.srs = SpatialReference.fromProj4(options.tileProj4);
+
+          const bd = tileDst.bands.get(1);
+          const pixel = bd.pixels;
+          const [min, max] = calcMinMax(dst.data);
+
+          if (options.gray) {
+            floatToGray(dst, min, max);
+          }
+
+          if (options.writeExif) {
+            tileDst.setMetadata({
+              ...info,
+              min,
+              max,
+              EXIF_ImageDescription: `${min},${max}`,
+            });
+            bd.setMetadata({
+              ...info,
+              min,
+              max,
+              EXIF_ImageDescription: `${min},${max}`,
+            });
+          } else {
+            tileDst.setMetadata({
+              ...info,
+              min,
+              max,
+            });
+
+            bd.setMetadata({
+              ...info,
+              min,
+              max,
+            });
+          }
+
+          const imageData = options.gray ? ndarray(new Uint8Array(dst.shape[0] * dst.shape[1]), dst.shape) : ndarray(new Float32Array(dst.shape[0] * dst.shape[1]), dst.shape);
+
+          for (let j = 0; j < dst.shape[0]; ++j) {
+            for (let k = 0; k < dst.shape[1]; ++k) {
+              const v = dst.get(j, k);
+              imageData.set(j, k, v);
+            }
+          }
+
+          await pixel.writeArrayAsync({
+            x: 0,
+            y: 0,
+            width: imageData.shape[0],
+            height: imageData.shape[1],
+            data: imageData,
+          });
+          tilesPath.set(tileId, tilePath);
+          tileDst.flush();
+          tileDst.close();
+        }
       }
     }
 

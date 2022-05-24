@@ -147,3 +147,11 @@ export function diffMap(source, target) {
   }
   return diff;
 }
+
+export function isValid(val: any, checkString = false) {
+  let f = val !== null && val !== undefined && !isNaN(val) && val !== Infinity;
+  if (checkString) {
+    f = f && val !== '';
+  }
+  return f;
+}

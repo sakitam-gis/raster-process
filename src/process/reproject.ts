@@ -11,7 +11,7 @@ import {
   Dataset,
 } from 'gdal-async';
 import { extent, mercatorExtent } from '../config';
-import { transformExtent, getExtentFromDataSet, getProjFromDataset } from '../utils';
+import { transformExtent, getExtentFromDataSet, getProjFromDataset, isValid } from '../utils';
 
 export interface IReprojectOptions {
   clear: boolean;
@@ -23,6 +23,7 @@ export interface IReprojectOptions {
   resampling: string;
   sourceProj4: string;
   threads: number;
+  withMetadata: boolean;
   sourceExtent: [number, number, number, number];
   destinationProj4: string;
   destinationExtent: [number, number, number, number];
@@ -33,7 +34,7 @@ const defaultOptions = {
   height: 256,
   clear: true,
   drivers: 'GTiff',
-  bandCount: 1,
+  withMetadata: true,
   dataType: GDT_Float32,
   resampling: GRA_NearestNeighbor,
   sourceProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
@@ -83,7 +84,7 @@ export default async (
     options.drivers,
     options.width,
     options.height,
-    lastDst.bands.count() || options.bandCount,
+    isValid(options.bandCount, true) ? options.bandCount : lastDst.bands.count(),
     options.dataType,
   );
 
@@ -112,6 +113,20 @@ export default async (
       NUM_THREADS: options.threads || cpus.toString(),
     },
   });
+
+  if (options.withMetadata) {
+    const bands = lastDst.bands;
+
+    const count = bands.count();
+    for (let i = 1; i < count + 1; i++) {
+      const e = bands.get(i);
+      const info = e.getMetadata();
+      const targetBand = dst.bands.get(i);
+      if (targetBand) {
+        await targetBand.setMetadataAsync(info);
+      }
+    }
+  }
 
   return {
     path: dstPath,

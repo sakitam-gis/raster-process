@@ -18,6 +18,7 @@ function run () {
     .use(
       new RasterProcess.default.task.WriteTiff(tiffPath, {
         clear: true,
+        gray: false,
         customProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
         customExtent: [-180, -85.05112877980659, 180, 85.05112877980659],
       }),
@@ -42,6 +43,11 @@ function run () {
         clear: true,
       }),
     )
+    // .use(
+    //   new RasterProcess.default.task.GeneratePNG(jpegPath, {
+    //     clear: true,
+    //   }),
+    // )
     .run([dataPath], (res) => {
       console.log(res);
     });

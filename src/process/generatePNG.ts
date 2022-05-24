@@ -4,7 +4,7 @@ import { merge, isFunction } from 'lodash';
 import { openAsync, drivers } from 'gdal-async';
 import type { Dataset } from 'gdal-async';
 
-export interface IGenerateJPEGOptions {
+export interface IGeneratePNGOptions {
   clear: boolean;
   quality: number;
   drivers: string | string[];
@@ -19,8 +19,8 @@ type IRes = {
 
 const defaultOptions = {
   clear: true,
-  drivers: 'JPEG',
-  tileFolder: 'jpeg',
+  drivers: 'PNG',
+  tileFolder: 'png',
   quality: 90,
 };
 
@@ -71,7 +71,7 @@ async function process(data, tilePath, options) {
 export default async (
   data,
   folder: string,
-  opt: Partial<IGenerateJPEGOptions> = {},
+  opt: Partial<IGeneratePNGOptions> = {},
 ): Promise<IRes> => {
   const options = merge({}, defaultOptions, opt);
   let res: IRes = {
@@ -85,7 +85,7 @@ export default async (
       for (let i = 0; i < tiles.length; i++) {
         const { key, value } = tiles[i];
         const [bandName, z, x, y] = key.split('-');
-        const tilePath = isFunction(options.name) ? options.name(folder, options.tileFolder, bandName, z, x, y) : path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.jpeg`);
+        const tilePath = isFunction(options.name) ? options.name(folder, options.tileFolder, bandName, z, x, y) : path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.png`);
         const r = await process([value], tilePath, options);
         tilesPath.set(key, r.path);
       }
@@ -97,8 +97,8 @@ export default async (
       const ext = path.extname(data[0]);
       const name = path.basename(data[0])
       const nm = name.replace(new RegExp(ext + '$'), '');
-      const filePath = isFunction(options.name) ? options.name(folder, options.tileFolder, nm) : path.join(folder, options.tileFolder, `${nm}.jpeg`);
-      res = await process([data[0]], filePath, options);
+      const filePath = isFunction(options.name) ? options.name(folder, options.tileFolder, nm) : path.join(folder, options.tileFolder, `${nm}.png`);
+      res = await process(data, filePath, options);
     }
     return res;
   } catch (e) {

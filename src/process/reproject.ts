@@ -9,9 +9,16 @@ import {
   GRA_NearestNeighbor,
   SpatialReference,
   Dataset,
+  Geometry,
 } from 'gdal-async';
 import { extent, mercatorExtent } from '../config';
-import { transformExtent, getExtentFromDataSet, getProjFromDataset, isValid } from '../utils';
+import {
+  transformExtent,
+  getExtentFromDataSet,
+  getProjFromDataset,
+  isValid,
+  filterOptions,
+} from '../utils';
 
 export interface IReprojectOptions {
   clear: boolean;
@@ -27,6 +34,17 @@ export interface IReprojectOptions {
   sourceExtent: [number, number, number, number];
   destinationProj4: string;
   destinationExtent: [number, number, number, number];
+  cutline?: Geometry;
+  srcBands?: number[];
+  dstBands?: number[];
+  srcAlphaBand?: number;
+  dstAlphaBand?: number;
+  srcNodata?: number;
+  dstNodata?: number;
+  blend?: number;
+  memoryLimit?: number;
+  maxError?: number;
+  multi?: boolean;
 }
 
 const defaultOptions = {
@@ -109,6 +127,17 @@ export default async (
     t_srs: dst.srs,
     // http://naturalatlas.github.io/node-gdal/classes/Constants%20(GRA).html
     resampling: options.resampling,
+    ...filterOptions(
+      {
+        srcBands: options.srcBands,
+        dstBands: options.dstBands,
+        srcAlphaBand: options.srcAlphaBand,
+        dstAlphaBand: options.dstAlphaBand,
+        srcNodata: options.srcNodata,
+        dstNodata: options.dstNodata,
+      },
+      undefined,
+    ),
     options: {
       NUM_THREADS: options.threads || cpus.toString(),
     },

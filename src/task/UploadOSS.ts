@@ -21,13 +21,13 @@ export interface IOSSConfig {
 
 class UploadOSS {
   public id: string;
-  public config: IOSSConfig;
+  public config: Partial<IOSSConfig>;
 
   private ctx: any;
 
   private client: typeof OSS;
 
-  constructor(config: IOSSConfig) {
+  constructor(config: Partial<IOSSConfig>) {
     this.id = 'UploadOSSTask';
 
     this.config = config;

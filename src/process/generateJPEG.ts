@@ -84,8 +84,22 @@ export default async (
       const tilesPath = new Map<string, string>();
       for (let i = 0; i < tiles.length; i++) {
         const { key, value } = tiles[i];
-        const [bandName, z, x, y] = key.split('-');
-        const tilePath = isFunction(options.name) ? options.name(folder, options.tileFolder, bandName, z, x, y) : path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.jpeg`);
+        const keys = key.split('-');
+        let [bandName, z, x, y]: [string, number, number, number] = [] as unknown as [
+          string,
+          number,
+          number,
+          number,
+        ];
+        if (keys.length === 4) {
+          [bandName, z, x, y] = keys;
+        } else if (keys.length === 3) {
+          bandName = '';
+          [z, x, y] = keys;
+        }
+        const tilePath = isFunction(options.name)
+          ? options.name(folder, options.tileFolder, bandName as unknown as string, z, x, y)
+          : path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.jpeg`);
         const r = await process([value], tilePath, options);
         tilesPath.set(key, r.path);
       }

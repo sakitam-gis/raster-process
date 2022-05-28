@@ -23,8 +23,8 @@ export function clamp(n: number, min: number, max: number): number {
  */
 export function wrap(n: number, min: number, max: number): number {
   const d = max - min;
-  const w = ((n - min) % d + d) % d + min;
-  return (w === min) ? max : w;
+  const w = ((((n - min) % d) + d) % d) + min;
+  return w === min ? max : w;
 }
 
 /**
@@ -45,8 +45,8 @@ export function getExtentFromDataSet(ds: Dataset) {
   const size = ds.rasterSize;
   const geoTransform: number[] | null = ds.geoTransform;
   if (geoTransform && geoTransform.length > 0 && size.x > 0 && size.y > 0) {
-    const minx = geoTransform[0]
-    const maxy = geoTransform[3]
+    const minx = geoTransform[0];
+    const maxy = geoTransform[3];
     const maxx = minx + geoTransform[1] * size.x;
     const miny = maxy + geoTransform[5] * size.y;
     return [minx, miny, maxx, maxy];
@@ -69,7 +69,10 @@ export function transformPoint(coordinates: number[], source: string, target: st
     x = clamp(x, -180, 180);
     y = clamp(x, -90, 90);
   }
-  const tr = new CoordinateTransformation(SpatialReference.fromProj4(source), SpatialReference.fromProj4(target));
+  const tr = new CoordinateTransformation(
+    SpatialReference.fromProj4(source),
+    SpatialReference.fromProj4(target),
+  );
   return tr.transformPoint(x, y, z);
 }
 
@@ -84,10 +87,7 @@ export function transformExtent(extent: number[], source: string, target: string
   const rightTop = [extent[2], extent[3]];
   const p1 = transformPoint(leftBottom, source, target);
   const p2 = transformPoint(rightTop, source, target);
-  return [
-    p1.x, p1.y,
-    p2.x, p2.y,
-  ]
+  return [p1.x, p1.y, p2.x, p2.y];
 }
 
 /**
@@ -155,4 +155,15 @@ export function isValid(val: any, checkString = false) {
     f = f && val !== '';
   }
   return f;
+}
+
+export function filterOptions<T>(options = {}, filterValue): Partial<T> {
+  const keys = Object.keys(options).filter((key) => options[key] !== filterValue);
+  return keys.reduce(
+    (prev, cur) => ({
+      ...prev,
+      [cur]: options[cur],
+    }),
+    {},
+  );
 }

@@ -12,6 +12,7 @@ import { floatToGray } from './normalizeData';
 import enlargeData from './enlargeData';
 import type { IEnlargeDataOptions } from './enlargeData';
 import reproject from './reproject';
+import type { IReprojectOptions } from './reproject';
 
 export interface IGenerateTileOptions {
   clear: boolean;
@@ -30,6 +31,7 @@ export interface IGenerateTileOptions {
   enlargeOptions: Partial<IEnlargeDataOptions>;
   tileExtent: [number, number, number, number];
   tileProj4: string;
+  reprojectOptions: Partial<IReprojectOptions>
 }
 
 const defaultOptions = {
@@ -114,6 +116,7 @@ export default async (
       const targetData = fc[0]
         ? fc[1]
         : await reproject(['', lastDst, []], dstSrc, {
+            ...(options.reprojectOptions || {}),
             width: tileWidth,
             height: tileHeight,
           });
@@ -143,7 +146,7 @@ export default async (
         for (const tile of tiles) {
           const x = tile.getX();
           const y = tile.getY();
-          const tileId = `${bandName}-${z}-${x}-${y}`;
+          const tileId = `${bandName ? bandName + '-' : ''}${z}-${x}-${y}`;
           const tilePath = path.join(
             folder,
             options.tileFolder,

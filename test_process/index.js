@@ -1,5 +1,9 @@
-const RasterProcess =  require('../');
 const path = require('path');
+
+require('dotenv').config({
+  path: path.resolve(process.cwd(), '.env'),
+});
+const RasterProcess =  require('../');
 
 function run () {
   const rp = new RasterProcess.default();
@@ -10,6 +14,7 @@ function run () {
 
   const tempPath = path.resolve(__dirname, './data/result/tiles');
   const jpegPath = path.resolve(__dirname, './data/result');
+  const mbPath = path.resolve(__dirname, './data/result/mbtiles/tile.mbtiles');
 
   rp
     .use(
@@ -59,6 +64,24 @@ function run () {
     //     clear: true,
     //   }),
     // )
+    // .use(
+    //   new RasterProcess.default.task.UploadOSS({
+    //     // region填写Bucket所在地域。以华东1（杭州）为例，Region填写为oss-cn-hangzhou。
+    //     region: process.env.region,
+    //     // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
+    //     accessKeyId: process.env.accessKeyId,
+    //     accessKeySecret: process.env.accessKeySecret,
+    //     // 填写Bucket名称。
+    //     bucket: process.env.bucket,
+    //     folder: 'tmp',
+    //     pathFunction: (url, folder) => path.join(folder, url.replace(jpegPath, '')),
+    //   })
+    // )
+    .use(
+      new RasterProcess.default.task.WriteMBTile(mbPath, {
+        mode: 'rwc',
+      }),
+    )
     .run([dataPath], (res) => {
       console.log(res);
     });

@@ -27,7 +27,7 @@ class ReadData {
         }),
       ];
     } catch (e) {
-      this.ctx.logger.error(`[${this.id}]: `, e.toString());
+      this.ctx.logger.error(`[${this.id}]: ${e.toString()}`);
     }
   }
 

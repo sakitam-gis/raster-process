@@ -95,7 +95,7 @@ export default async (
       };
     } else {
       const ext = path.extname(data[0]);
-      const name = path.basename(data[0])
+      const name = path.basename(data[0]);
       const nm = name.replace(new RegExp(ext + '$'), '');
       const filePath = isFunction(options.name) ? options.name(folder, options.tileFolder, nm) : path.join(folder, options.tileFolder, `${nm}.png`);
       res = await process(data, filePath, options);

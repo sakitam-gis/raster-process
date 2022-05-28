@@ -124,6 +124,7 @@ export type IRItem = {
   path: string | Buffer | string[];
   data: Dataset | Map<string, string> | null;
   options: any;
+  errorTiles?: any[];
 };
 
 export function safePush(array: IRItem[] = [], item: IRItem) {

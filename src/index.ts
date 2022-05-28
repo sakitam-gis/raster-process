@@ -72,16 +72,20 @@ class RasterProcess {
     return this;
   }
 
-  run(pathSrc: string[], cb?: (res: ITaskResult) => void) {
-    this.task.callAsync(pathSrc as any, (err, res: any) => {
-      if (err) {
-        this.logger.error('task fail', err);
-      } else {
-        this.logger.info('all task done');
-      }
-      if (isFunction(cb) && !err) {
-        cb(res);
-      }
+  run(pathSrc: string[], cb?: (err: any, res: ITaskResult) => void) {
+    return new Promise((resolve, reject) => {
+      this.task.callAsync(pathSrc as any, (err, res: any) => {
+        if (err) {
+          this.logger.error('task fail', err);
+          reject(err);
+        } else {
+          this.logger.info('all task done');
+          resolve(res);
+        }
+        if (isFunction(cb)) {
+          cb(err, res);
+        }
+      });
     });
   }
 }

@@ -8,7 +8,7 @@ const RasterProcess =  require('../');
 function run () {
   const rp = new RasterProcess.default();
 
-  const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t00z.pgrb2.0p25.f000');
+  const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t12z.pgrb2.0p25.grib');
   const tiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25.tiff');
   const mercatorTiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff');
 
@@ -26,7 +26,7 @@ function run () {
         gray: false,
         bandsFunction: (info) => {
           const t = info.GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES.split(' ');
-          if (info.GRIB_ELEMENT === 'TMP' && t[11] === '100000') {
+          if (info.GRIB_ELEMENT === 'TMP') {
             return {
               name: 'TMP',
               label: '温度',

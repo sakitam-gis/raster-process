@@ -3,10 +3,11 @@ const path = require('path');
 require('dotenv').config({
   path: path.resolve(process.cwd(), '.env'),
 });
-const RasterProcess =  require('../');
+
+const { RasterProcess } =  require('../');
 
 function run () {
-  const rp = new RasterProcess.default();
+  const rp = new RasterProcess();
 
   // const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t12z.pgrb2.0p25.grib');
   const dataPath = path.resolve(__dirname, './data/result/1.tiff');
@@ -19,10 +20,10 @@ function run () {
 
   rp
     .use(
-      new RasterProcess.default.task.ReadData(),
+      new RasterProcess.task.ReadData(),
     )
     // .use(
-    //   new RasterProcess.default.task.WriteTiff(tiffPath, {
+    //   new RasterProcess.task.WriteTiff(tiffPath, {
     //     clear: true,
     //     gray: false,
     //     bandsFunction: (info) => {
@@ -31,7 +32,7 @@ function run () {
     //         return {
     //           name: 'TMP',
     //           label: '温度',
-    //           process: (v) => RasterProcess.default.normalizeDataProcess.subScalar(v, 0),
+    //           process: (v) => RasterProcess.normalizeDataProcess.subScalar(v, 0),
     //         };
     //       }
     //       return false;
@@ -41,14 +42,14 @@ function run () {
     //   }),
     // )
     // .use(
-    //   new RasterProcess.default.task.Reproject(mercatorTiffPath, {
+    //   new RasterProcess.task.Reproject(mercatorTiffPath, {
     //     width: 1024,
     //     height: 1024,
     //     clear: true,
     //   }),
     // )
     .use(
-      new RasterProcess.default.task.GenerateTiles(tempPath, {
+      new RasterProcess.task.GenerateTiles(tempPath, {
         clear: true,
         gray: true,
         writeExif: true,
@@ -61,17 +62,17 @@ function run () {
       }),
     )
     // .use(
-    //   new RasterProcess.default.task.GenerateJPEG(jpegPath, {
+    //   new RasterProcess.task.GenerateJPEG(jpegPath, {
     //     clear: true,
     //   }),
     // )
     .use(
-      new RasterProcess.default.task.GeneratePNG(jpegPath, {
+      new RasterProcess.task.GeneratePNG(jpegPath, {
         clear: true,
       }),
     )
     // .use(
-    //   new RasterProcess.default.task.UploadOSS({
+    //   new RasterProcess.task.UploadOSS({
     //     // region填写Bucket所在地域。以华东1（杭州）为例，Region填写为oss-cn-hangzhou。
     //     region: process.env.region,
     //     // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
@@ -84,7 +85,7 @@ function run () {
     //   })
     // )
     // .use(
-    //   new RasterProcess.default.task.WriteMBTile(mbPath, {
+    //   new RasterProcess.task.WriteMBTile(mbPath, {
     //     mode: 'rwc',
     //   }),
     // )

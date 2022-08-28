@@ -10,7 +10,7 @@
           { "scope": "no-release", "release": false },
           { "scope": "cli", "release": "patch" },
           { "scope": "patch", "release": "patch" },
-          { "scope": "minor", "release": "patch" }
+          { "scope": "minor", "release": "minor" }
         ]
       }
     ],

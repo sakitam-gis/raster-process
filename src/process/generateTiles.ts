@@ -31,7 +31,7 @@ export interface IGenerateTileOptions {
   enlargeOptions: Partial<IEnlargeDataOptions>;
   tileExtent: [number, number, number, number];
   tileProj4: string;
-  reprojectOptions: Partial<IReprojectOptions>
+  reprojectOptions: Partial<IReprojectOptions>;
 }
 
 const defaultOptions = {

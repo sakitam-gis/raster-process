@@ -19,7 +19,7 @@
     "build": "tsup-node src/index.ts --sourcemap --dts --format esm,cjs",
     "prepublishOnly": "npm run build",
     "test": "npm run build && npm run test-only",
-    "test-only": "vitest run",
+    "test-only": "vitest run --no-threads --no-isolate",
     "coverage": "vitest run --coverage",
     "semantic-release": "semantic-release --branches master"
   },
@@ -72,7 +72,7 @@
     "semantic-release": "^19.0.3",
     "tsup": "^6.2.1",
     "typescript": "^4.7.4",
-    "vitest": "0.21.0",
+    "vitest": "^0.22.1",
     "wait-for-expect": "3.0.2"
   },
   "engines": {

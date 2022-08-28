@@ -59,7 +59,6 @@ async function process(data, tilePath, options) {
     false,
   );
   await jpegDst.flushAsync();
-  await lastDst.flushAsync();
   lastDst.close();
 
   return {

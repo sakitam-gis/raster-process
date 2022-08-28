@@ -2,8 +2,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import { test, expect, describe, beforeAll } from 'vitest';
 import dotenv from 'dotenv';
+import { RasterProcess } from '..';
 
-import RasterProcess from '../src/index';
 dotenv.config({
   path: path.resolve(process.cwd(), '.env'),
 });
@@ -16,8 +16,8 @@ const mercatorTiffPath = path.resolve(
 );
 
 const tilesPath = path.resolve(__dirname, './fixtures/result/tiles');
-const jpegPath = path.resolve(__dirname, './fixtures/result');
-const pngPath = path.resolve(__dirname, './fixtures/result');
+const jpegPath = path.resolve(__dirname, './fixtures/result/jpeg');
+const pngPath = path.resolve(__dirname, './fixtures/result/png');
 const mbPath = path.resolve(__dirname, './fixtures/result/mbtiles/tile.mbtiles');
 
 beforeAll(async () => {
@@ -126,6 +126,7 @@ describe('task', () => {
       console.log(e);
     }
   });
+
   test('GenerateJPEG', async () => {
     const rp = new RasterProcess();
     expect(rp).toBeInstanceOf(RasterProcess);
@@ -138,12 +139,13 @@ describe('task', () => {
           }),
         )
         .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]);
-      const stat = fs.pathExistsSync(path.join(pngPath, 'gfs.t12z.pgrb2.0p25-write-mercator.jpeg'));
+      const stat = fs.pathExistsSync(path.join(jpegPath, 'gfs.t12z.pgrb2.0p25-write-mercator.jpeg'));
       expect(stat).toBe(true);
     } catch (e) {
       console.log(e);
     }
   });
+
   test('GeneratePNG', async () => {
     const rp = new RasterProcess();
     expect(rp).toBeInstanceOf(RasterProcess);
@@ -162,11 +164,12 @@ describe('task', () => {
       console.log(e);
     }
   });
+
   test('UploadOSS', async () => {
     const rp = new RasterProcess();
     expect(rp).toBeInstanceOf(RasterProcess);
     try {
-      await rp
+      const res: any[] = await rp
         .use(new RasterProcess.task.ReadData())
         .use(
           new RasterProcess.task.UploadOSS({
@@ -181,13 +184,13 @@ describe('task', () => {
             pathFunction: (url, f) => path.join(f as string, url.replace(jpegPath, '')),
           }),
         )
-        .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]);
-      const stat = fs.pathExistsSync(path.join(tilesPath, 'tiles/TMP/0/0/0.tiff'));
-      expect(stat).toBe(true);
+        .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]) as any[];
+      expect(res[0].length > 0).toBe(true);
     } catch (e) {
       console.log(e);
     }
   });
+
   test('WriteMBTile', async () => {
     const rp = new RasterProcess();
     expect(rp).toBeInstanceOf(RasterProcess);
@@ -213,7 +216,7 @@ describe('task', () => {
           }),
         )
         .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]);
-      const stat = fs.pathExistsSync(path.join(tilesPath, 'tiles/TMP/0/0/0.tiff'));
+      const stat = fs.pathExistsSync(mbPath);
       expect(stat).toBe(true);
     } catch (e) {
       console.log(e);

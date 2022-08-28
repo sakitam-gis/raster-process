@@ -90,4 +90,9 @@ class RasterProcess {
   }
 }
 
-export default RasterProcess;
+export {
+  RasterProcess,
+  defaultConfig,
+  task,
+  normalizeDataProcess,
+};

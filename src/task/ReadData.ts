@@ -27,9 +27,11 @@ class ReadData {
   async run(dataPath: string | Buffer, dst: Dataset, results) {
     try {
       const data = await openAsync(dataPath);
-      if (this.options.autoClose) {
-        data.close();
-      }
+      process.nextTick(() => {
+        if (this.options.autoClose) {
+          data.close();
+        }
+      });
       return [
         dataPath,
         data,

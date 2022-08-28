@@ -49,7 +49,7 @@ async function process(data, tilePath, options) {
   await fs.ensureFileSync(tilePath);
 
   const driver = drivers.get(options.drivers);
-  const jpegDst = await driver.createCopyAsync(
+  const pngDst = await driver.createCopyAsync(
     tilePath,
     lastDst,
     {
@@ -58,13 +58,12 @@ async function process(data, tilePath, options) {
     },
     false,
   );
-  await jpegDst.flushAsync();
-  await lastDst.flushAsync();
+  await pngDst.flushAsync();
   lastDst.close();
 
   return {
     path: tilePath,
-    data: jpegDst,
+    data: pngDst,
   };
 }
 

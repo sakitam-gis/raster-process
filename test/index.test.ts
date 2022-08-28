@@ -136,6 +136,7 @@ describe('task', () => {
         .use(
           new RasterProcess.task.GenerateJPEG(jpegPath, {
             clear: true,
+            tileFolder: '',
           }),
         )
         .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]);
@@ -155,6 +156,7 @@ describe('task', () => {
         .use(
           new RasterProcess.task.GeneratePNG(pngPath, {
             clear: true,
+            tileFolder: '',
           }),
         )
         .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]);

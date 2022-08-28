@@ -42,6 +42,13 @@ jobs:
 
       - name: Install deps
         run: pnpm i
+      - name: create env file
+        run: |
+          touch .env
+          echo region=${{ secrets.region }} >> .env
+          echo bucket=${{ secrets.bucket }} >> .env
+          echo accessKeyId=${{ secrets.accessKeyId }} >> .env
+          echo accessKeySecret=${{ secrets.accessKeySecret }} >> .env
 
       # Runs a set of commands using the runners shell
       - name: Build and Test
@@ -49,10 +56,6 @@ jobs:
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
-          region: ${{ secrets.region }}
-          bucket: ${{ secrets.bucket }}
-          accessKeyId: ${{ secrets.accessKeyId }}
-          accessKeySecret: ${{ secrets.accessKeySecret }}
           # https://github.com/coverallsapp/github-action/issues/81
           # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
           git-branch: master

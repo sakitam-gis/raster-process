@@ -49,6 +49,10 @@ jobs:
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
+          region: ${{ secrets.region }}
+          bucket: ${{ secrets.bucket }}
+          accessKeyId: ${{ secrets.accessKeyId }}
+          accessKeySecret: ${{ secrets.accessKeySecret }}
           # https://github.com/coverallsapp/github-action/issues/81
           # https://docs.github.com/en/actions/security-guides/automatic-token-authentication
           git-branch: master

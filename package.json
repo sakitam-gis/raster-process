@@ -27,6 +27,7 @@
     "@sakitam-gis/affine": "^1.1.0",
     "@sakitam-gis/mercantile": "^1.0.0",
     "@mapbox/mbtiles": "^0.12.1",
+    "@vitest/coverage-c8": "^0.22.1",
     "ali-oss": "^6.17.1",
     "fs-extra": "^10.1.0",
     "gdal-async": "^3.5.1",

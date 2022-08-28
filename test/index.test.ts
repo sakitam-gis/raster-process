@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { test, expect, describe, beforeAll } from 'vitest';
 import dotenv from 'dotenv';
-import { RasterProcess } from '..';
+import { RasterProcess } from '../src';
 
 dotenv.config({
   path: path.resolve(process.cwd(), '.env'),

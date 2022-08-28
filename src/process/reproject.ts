@@ -1,7 +1,7 @@
 import os from 'os';
 import fs from 'fs-extra';
 import { merge } from 'lodash';
-import Affine from '@sakitam-gis/affine';
+import Affine from '@sakitam-gis/affine/dist/index.mjs';
 import {
   openAsync,
   reprojectImageAsync,

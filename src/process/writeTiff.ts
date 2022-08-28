@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import { merge, isFunction, isObject } from 'lodash';
-import Affine from '@sakitam-gis/affine';
+import Affine from '@sakitam-gis/affine/dist/index.mjs';
 import { openAsync, GDT_Float32, Dataset, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
 import { NdArray } from 'ndarray';

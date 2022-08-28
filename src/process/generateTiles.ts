@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { isFunction, merge } from 'lodash';
-import Affine from '@sakitam-gis/affine';
+import Affine from '@sakitam-gis/affine/dist/index.mjs';
 import { Constant, Mercantile } from '@sakitam-gis/mercantile';
 import { openAsync, GDT_Float32, GDT_Byte, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';

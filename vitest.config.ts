@@ -2,7 +2,7 @@ import { UserConfig } from 'vitest';
 
 const config: { test: UserConfig } = {
   test: {
-    testTimeout: 50000,
+    testTimeout: 500000,
     coverage: {
       reporter: ['lcov', 'html'],
     },

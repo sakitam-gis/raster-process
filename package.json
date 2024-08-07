@@ -36,7 +36,7 @@
     "test:process": "tsx watch test_process/index.js | pino-pretty --colorize",
     "test-only": "vitest run --no-isolate",
     "coverage": "vitest run --coverage",
-    "semantic-release": "npx -p node@v18-lts -c \"npx semantic-release --branches master\""
+    "semantic-release": "semantic-release --branches master"
   },
   "dependencies": {
     "@sakitam-gis/affine": "^1.1.0",
@@ -71,6 +71,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "prettier": "^3.3.3",
+    "semantic-release": "^22.0.12",
     "tsx": "^4.16.5",
     "tsup": "^8.2.4",
     "typescript": "^5.3.5",

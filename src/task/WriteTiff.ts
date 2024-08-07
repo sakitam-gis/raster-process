@@ -1,4 +1,4 @@
-import writeTiff from '../process/writeTiff';
+import { default as writeTiff } from '../process/writeTiff';
 import type { IWriteOptions } from '../process/writeTiff';
 import { safePush } from '../utils';
 

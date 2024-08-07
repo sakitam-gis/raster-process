@@ -1,16 +1,19 @@
-const path = require('path');
+import path from 'path';
 
-require('dotenv').config({
+import { config } from 'dotenv';
+
+config({
   path: path.resolve(process.cwd(), '.env'),
 });
 
-const { RasterProcess } =  require('../');
+import { RasterProcess } from '../src/index';
 
-function run () {
+function run() {
   const rp = new RasterProcess();
 
   // const dataPath = path.resolve(__dirname, '../test/fixtures/gfs.t12z.pgrb2.0p25.grib');
-  const dataPath = path.resolve(__dirname, './data/result/1.tiff');
+  const dataPath = '/Users/sakitam-fdd/Downloads/gfs.t00z.pgrb2full.0p50.f000';
+  // const dataPath = path.resolve(__dirname, './data/result/1.tiff');
   const tiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25.tiff');
   const mercatorTiffPath = path.resolve(__dirname, './data/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff');
 
@@ -18,29 +21,26 @@ function run () {
   const jpegPath = path.resolve(__dirname, './data/result');
   const mbPath = path.resolve(__dirname, './data/result/mbtiles/tile.mbtiles');
 
-  rp
+  rp.use(new RasterProcess.task.ReadData())
     .use(
-      new RasterProcess.task.ReadData(),
+      new RasterProcess.task.WriteTiff(tiffPath, {
+        clear: true,
+        gray: false,
+        bandsFunction: (info) => {
+          const t = info.GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES.split(' ');
+          if (info.GRIB_ELEMENT === 'TMP' && info.GRIB_SHORT_NAME === '2-HTGL') {
+            return {
+              name: 'TMP',
+              label: '温度',
+              process: (v) => RasterProcess.normalizeDataProcess.subScalar(v, 0),
+            };
+          }
+          return false;
+        },
+        customProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
+        customExtent: [-180, -85.05112877980659, 180, 85.05112877980659],
+      }),
     )
-    // .use(
-    //   new RasterProcess.task.WriteTiff(tiffPath, {
-    //     clear: true,
-    //     gray: false,
-    //     bandsFunction: (info) => {
-    //       const t = info.GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES.split(' ');
-    //       if (info.GRIB_ELEMENT === 'TMP') {
-    //         return {
-    //           name: 'TMP',
-    //           label: '温度',
-    //           process: (v) => RasterProcess.normalizeDataProcess.subScalar(v, 0),
-    //         };
-    //       }
-    //       return false;
-    //     },
-    //     customProj4: '+proj=longlat +datum=WGS84 +no_defs +type=crs', // 4326
-    //     customExtent: [-180, -85.05112877980659, 180, 85.05112877980659],
-    //   }),
-    // )
     // .use(
     //   new RasterProcess.task.Reproject(mercatorTiffPath, {
     //     width: 1024,
@@ -58,19 +58,19 @@ function run () {
         reprojectOptions: {
           srcNodata: NaN,
           dstNodata: NaN,
-        }
+        },
       }),
     )
-    // .use(
-    //   new RasterProcess.task.GenerateJPEG(jpegPath, {
-    //     clear: true,
-    //   }),
-    // )
     .use(
-      new RasterProcess.task.GeneratePNG(jpegPath, {
+      new RasterProcess.task.GenerateJPEG(jpegPath, {
         clear: true,
       }),
     )
+    // .use(
+    //   new RasterProcess.task.GeneratePNG(jpegPath, {
+    //     clear: true,
+    //   }),
+    // )
     // .use(
     //   new RasterProcess.task.UploadOSS({
     //     // region填写Bucket所在地域。以华东1（杭州）为例，Region填写为oss-cn-hangzhou。

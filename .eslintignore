@@ -1,12 +1,9 @@
-*.html
-
 node_modules
 
 # build
-coverage
 dist
 
 # other
-.eslintrc.js
-.prettierrc.js
+.eslintrc.cjs
+.prettierrc.cjs
 vitest.config.ts

@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { isFunction, merge } from 'lodash';
-import Affine from '@sakitam-gis/affine/dist/index.mjs';
+import Affine from '@sakitam-gis/affine';
 import { Constant, Mercantile } from '@sakitam-gis/mercantile';
 import { openAsync, GDT_Float32, GDT_Byte, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
@@ -9,9 +9,9 @@ import ndarray from 'ndarray';
 import { mercatorLngLatExtent } from '../config';
 import { calcMinMax, diffMap, isValid } from '../utils';
 import { floatToGray } from './normalizeData';
-import enlargeData from './enlargeData';
+import { enlargeData } from './enlargeData';
 import type { IEnlargeDataOptions } from './enlargeData';
-import reproject from './reproject';
+import { default as reproject } from './reproject';
 import type { IReprojectOptions } from './reproject';
 
 export interface IGenerateTileOptions {
@@ -139,22 +139,13 @@ export default async (
           ...(options.enlargeOptions || {}),
           bandsIndex: b,
         });
-        const bandName: string = isFunction(options.bandName)
-          ? options?.bandName(z, b, info)
-          : options.bandName;
+        const bandName: string = isFunction(options.bandName) ? options?.bandName(z, b, info) : options.bandName;
 
         for (const tile of tiles) {
           const x = tile.getX();
           const y = tile.getY();
           const tileId = `${bandName ? bandName + '-' : ''}${z}-${x}-${y}`;
-          const tilePath = path.join(
-            folder,
-            options.tileFolder,
-            bandName,
-            String(z),
-            String(x),
-            `${y}.tiff`,
-          );
+          const tilePath = path.join(folder, options.tileFolder, bandName, String(z), String(x), `${y}.tiff`);
           const tileState = await checkAndLoad(tilePath, options.clear, false);
           needPaths.set(tileId, tilePath);
           if (tileState[0]) {
@@ -192,12 +183,7 @@ export default async (
             options.gray ? GDT_Byte : options.dataType,
           );
 
-          const [west, south, east, north] = [
-            bbox.getLeft(),
-            bbox.getBottom(),
-            bbox.getRight(),
-            bbox.getTop(),
-          ];
+          const [west, south, east, north] = [bbox.getLeft(), bbox.getBottom(), bbox.getRight(), bbox.getTop()];
           const t = Affine.translation(west, north);
           const s = Affine.scale((east - west) / dst.shape[0], (south - north) / dst.shape[1]);
           tileDst.geoTransform = t.multiply(s).toGdal();

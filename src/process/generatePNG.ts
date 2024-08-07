@@ -12,10 +12,10 @@ export interface IGeneratePNGOptions {
   name: string | ((p: string, t: string, n: string, z?: number, x?: number, y?: number) => string);
 }
 
-type IRes = {
+interface IRes {
   path: string[] | string;
   data: Map<string, string> | Dataset | null;
-};
+}
 
 const defaultOptions = {
   clear: true,
@@ -67,11 +67,7 @@ async function process(data, tilePath, options) {
   };
 }
 
-export default async (
-  data,
-  folder: string,
-  opt: Partial<IGeneratePNGOptions> = {},
-): Promise<IRes> => {
+export default async (data, folder: string, opt: Partial<IGeneratePNGOptions> = {}): Promise<IRes> => {
   const options = merge({}, defaultOptions, opt);
   let res: IRes = {
     path: '',
@@ -84,12 +80,7 @@ export default async (
       for (let i = 0; i < tiles.length; i++) {
         const { key, value } = tiles[i];
         const keys = key.split('-');
-        let [bandName, z, x, y]: [string, number, number, number] = [] as unknown as [
-          string,
-          number,
-          number,
-          number,
-        ];
+        let [bandName, z, x, y]: [string, number, number, number] = [] as unknown as [string, number, number, number];
         if (keys.length === 4) {
           [bandName, z, x, y] = keys;
         } else if (keys.length === 3) {

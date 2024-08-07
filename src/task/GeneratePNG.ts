@@ -1,4 +1,4 @@
-import generatePNG from '../process/generatePNG';
+import { default as generatePNG } from '../process/generatePNG';
 import type { IGeneratePNGOptions } from '../process/generatePNG';
 import { safePush } from '../utils';
 

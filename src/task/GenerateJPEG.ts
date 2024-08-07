@@ -1,4 +1,4 @@
-import generateJPEG from '../process/generateJPEG';
+import { default as generateJPEG } from '../process/generateJPEG';
 import type { IGenerateJPEGOptions } from '../process/generateJPEG';
 import { safePush } from '../utils';
 

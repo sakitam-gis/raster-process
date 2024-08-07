@@ -1,9 +1,10 @@
-import { AsyncSeriesWaterfallHook, UnsetAdditionalOptions } from 'tapable';
+import type { UnsetAdditionalOptions } from 'tapable';
+import { AsyncSeriesWaterfallHook } from 'tapable';
 import { merge, isFunction } from 'lodash';
 import pino from 'pino';
 import fs from 'fs-extra';
 import path from 'path';
-import { Dataset } from 'gdal-async';
+import type { Dataset } from 'gdal-async';
 import * as task from './task';
 import * as normalizeDataProcess from './process/normalizeData';
 import type { BaseLogger } from 'pino';
@@ -23,11 +24,7 @@ const defaultConfig: IConfig = {
 type IDataPath = string | string[];
 type IDataRes = Dataset | string[] | Map<string, string>;
 
-export type ITaskResult = [
-  IDataPath,
-  IDataRes,
-  IRItem[],
-]
+export type ITaskResult = [IDataPath, IDataRes, IRItem[]];
 
 class RasterProcess {
   public static task = task;
@@ -53,14 +50,12 @@ class RasterProcess {
 
   createLogger() {
     const data = new Date();
-    const destination = `./logs/{name}-${data.getFullYear()}-${
-      data.getMonth() + 1
-    }-${data.getDate()}.log`.replace('{name}', this.config.name);
-
-    const targetLog = path.resolve(
-      this.config.workspace,
-      <string>this.config.log?.destination || destination,
+    const destination = `./logs/{name}-${data.getFullYear()}-${data.getMonth() + 1}-${data.getDate()}.log`.replace(
+      '{name}',
+      this.config.name,
     );
+
+    const targetLog = path.resolve(this.config.workspace, <string>this.config.log?.destination || destination);
 
     fs.ensureFileSync(targetLog);
 
@@ -90,9 +85,4 @@ class RasterProcess {
   }
 }
 
-export {
-  RasterProcess,
-  defaultConfig,
-  task,
-  normalizeDataProcess,
-};
+export { RasterProcess, defaultConfig, task, normalizeDataProcess };

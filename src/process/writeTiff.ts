@@ -1,9 +1,10 @@
 import fs from 'fs-extra';
 import { merge, isFunction, isObject } from 'lodash';
-import Affine from '@sakitam-gis/affine/dist/index.mjs';
-import { openAsync, GDT_Float32, Dataset, SpatialReference } from 'gdal-async';
+import Affine from '@sakitam-gis/affine';
+import type { Dataset } from 'gdal-async';
+import { openAsync, GDT_Float32, SpatialReference } from 'gdal-async';
 import 'ndarray-gdal';
-import { NdArray } from 'ndarray';
+import type { NdArray } from 'ndarray';
 import { calcMinMax } from '../utils';
 import { floatToGray } from './normalizeData';
 

@@ -16,7 +16,7 @@ const defaultOptions = {
   bandsIndex: 1,
 };
 
-async function enlargeData(
+export async function enlargeData(
   data,
   opt: Partial<IEnlargeDataOptions> = {},
 ): Promise<{

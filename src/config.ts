@@ -1,5 +1,5 @@
-import { LoggerOptions, DestinationStream } from 'pino';
-import { SonicBoomOpts } from 'sonic-boom';
+import type { LoggerOptions, DestinationStream } from 'pino';
+import type { SonicBoomOpts } from 'sonic-boom';
 
 export interface IConfig {
   name: string;

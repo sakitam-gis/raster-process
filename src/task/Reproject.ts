@@ -1,4 +1,4 @@
-import reproject from '../process/reproject';
+import { default as reproject } from '../process/reproject';
 import type { IReprojectOptions } from '../process/reproject';
 import { safePush } from '../utils';
 

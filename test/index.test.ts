@@ -10,10 +10,7 @@ dotenv.config({
 
 const dataPath = path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25.grib');
 const tiffPath = path.resolve(__dirname, './fixtures/result/gfs.t12z.pgrb2.0p25.tiff');
-const mercatorTiffPath = path.resolve(
-  __dirname,
-  './fixtures/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff',
-);
+const mercatorTiffPath = path.resolve(__dirname, './fixtures/result/gfs.t12z.pgrb2.0p25-write-mercator.tiff');
 
 const tilesPath = path.resolve(__dirname, './fixtures/result/tiles');
 const jpegPath = path.resolve(__dirname, './fixtures/result/jpeg');
@@ -92,9 +89,7 @@ describe('task', () => {
             clear: true,
             destinationProj4:
               '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs', // 3857
-            destinationExtent: [
-              -20037508.342789244, -20037508.342789255, 20037508.342789244, 20037508.342789244,
-            ],
+            destinationExtent: [-20037508.342789244, -20037508.342789255, 20037508.342789244, 20037508.342789244],
           }),
         )
         .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25.tiff')]);
@@ -171,7 +166,7 @@ describe('task', () => {
     const rp = new RasterProcess();
     expect(rp).toBeInstanceOf(RasterProcess);
     try {
-      const res: any[] = await rp
+      const res: any[] = (await rp
         .use(new RasterProcess.task.ReadData())
         .use(
           new RasterProcess.task.UploadOSS({
@@ -186,7 +181,7 @@ describe('task', () => {
             pathFunction: (url, f) => path.join(f as string, url.replace(jpegPath, '')),
           }),
         )
-        .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')]) as any[];
+        .run([path.resolve(__dirname, './fixtures/gfs.t12z.pgrb2.0p25-write-mercator.tiff')])) as any[];
       expect(res[0].length > 0).toBe(true);
     } catch (e) {
       console.log(e);
@@ -204,7 +199,7 @@ describe('task', () => {
             clear: true,
             gray: true,
             writeExif: true,
-            zooms: [0, 1, 1]
+            zooms: [0, 1, 1],
           }),
         )
         .use(

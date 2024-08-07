@@ -1,4 +1,4 @@
-import { UserConfig } from 'vitest';
+import { UserConfig } from 'vitest/node';
 
 const config: { test: UserConfig } = {
   test: {
@@ -7,11 +7,7 @@ const config: { test: UserConfig } = {
     coverage: {
       reporter: ['lcov', 'html'],
     },
-    transformMode: {
-      ssr: [/\.(tsx)$/],
-    },
     deps: {
-      external: ['@sakitam-gis/affine', '@sakitam-gis/mercantile'],
       // fallbackCJS: false,
       // interopDefault: true,
       // registerNodeLoader: true,

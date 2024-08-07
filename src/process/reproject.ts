@@ -1,24 +1,11 @@
 import os from 'os';
 import fs from 'fs-extra';
 import { merge } from 'lodash';
-import Affine from '@sakitam-gis/affine/dist/index.mjs';
-import {
-  openAsync,
-  reprojectImageAsync,
-  GDT_Float32,
-  GRA_NearestNeighbor,
-  SpatialReference,
-  Dataset,
-  Geometry,
-} from 'gdal-async';
+import Affine from '@sakitam-gis/affine';
+import type { Dataset, Geometry } from 'gdal-async';
+import { openAsync, reprojectImageAsync, GDT_Float32, GRA_NearestNeighbor, SpatialReference } from 'gdal-async';
 import { extent, mercatorExtent } from '../config';
-import {
-  transformExtent,
-  getExtentFromDataSet,
-  getProjFromDataset,
-  isValid,
-  filterOptions,
-} from '../utils';
+import { transformExtent, getExtentFromDataSet, getProjFromDataset, isValid, filterOptions } from '../utils';
 
 export interface IReprojectOptions {
   clear: boolean;

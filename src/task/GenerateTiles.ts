@@ -1,4 +1,4 @@
-import generateTiles from '../process/generateTiles';
+import { default as generateTiles } from '../process/generateTiles';
 import type { IGenerateTileOptions } from '../process/generateTiles';
 import { safePush } from '../utils';
 

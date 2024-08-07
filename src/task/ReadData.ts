@@ -43,7 +43,7 @@ class ReadData {
         }),
       ];
     } catch (e) {
-      console.error(`[${this.id}]: ${e.toString()}`)
+      console.error(`[${this.id}]: ${e.toString()}`);
       this.ctx.logger.error(`[${this.id}]: ${e.toString()}`);
     }
   }

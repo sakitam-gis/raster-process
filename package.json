@@ -1,7 +1,7 @@
 {
   "name": "@sakitam-gis/raster-process",
   "description": "A raster data process utilities",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "type": "commonjs",
   "license": "BSD 3-Clause",

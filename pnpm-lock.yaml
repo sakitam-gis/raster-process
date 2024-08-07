@@ -97,9 +97,6 @@ devDependencies:
   prettier:
     specifier: ^3.3.3
     version: 3.3.3
-  semantic-release:
-    specifier: ^24.0.0
-    version: 24.0.0(typescript@5.4.2)
   tsup:
     specifier: ^8.2.4
     version: 8.2.4(tsx@4.16.5)(typescript@5.4.2)

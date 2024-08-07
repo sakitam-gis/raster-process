@@ -67,7 +67,7 @@
     "@types/lodash": "^4.17.7",
     "@types/ndarray": "^1.0.14",
     "@stdlib/types": "^0.3.2",
-    "@vitest/coverage-c8": "^0.22.1",
+    "@vitest/coverage-v8": "^2.0.5",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "prettier": "^3.3.3",

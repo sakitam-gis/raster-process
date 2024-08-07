@@ -53,7 +53,7 @@ function run() {
         clear: true,
         gray: true,
         writeExif: true,
-        zooms: [0, 1, 1],
+        zooms: [0, 3, 1],
         bandName: '',
         reprojectOptions: {
           srcNodata: NaN,
